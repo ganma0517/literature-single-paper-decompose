@@ -1,72 +1,114 @@
 # literature-single-paper-decompose
 
-一個 [Claude Code](https://claude.com/claude-code) **skill**：把單篇學術論文整理成**可追溯、低幻覺**的理論建構分析，並產出理論架構圖。
+A [Claude Code](https://claude.com/claude-code) **skill** that turns a single academic paper into a **traceable, low-hallucination theory-construction analysis** plus an architecture diagram.
 
-核心價值 ——**每個論斷都能 `grep` 回原文，且誠實區分「本文明示」與「分析者詮釋」**。
+Core value — **every claim can be `grep`-ed back to the source text, and "what the paper explicitly says" is kept strictly separate from "what the analyst inferred."**
 
 ---
 
-## 為什麼
+## Why
 
-近年論文（尤其 AI 輔助寫作）偶有捏造或張冠李戴的引用，而「整理論文」最隱蔽的幻覺不是捏造原典，而是**過度詮釋被分析文本**——把分析者歸納的標籤當成本文原話。本 skill 用一組可機械稽核的條件把這條線守住。
+Fabricated or misattributed citations are an increasing risk (especially in AI-assisted writing). But the most insidious hallucination when *summarizing* a paper is not inventing the original source — it is **over-interpreting the analyzed text itself**: passing off the analyst's own labels as the paper's words. This skill enforces a set of mechanically auditable conditions to hold that line.
 
-**鐵律**：只描述「本文如何使用文獻／如何建構理論」（citation context），**永不**宣稱「原典實際主張什麼」（那要讀原典，屬後續第二層工作）。
+**Cardinal rule:** describe only *how the paper uses a reference / constructs its theory* (citation context). **Never** assert *what the original source actually claims* — that requires reading the original and belongs to a later layer.
 
-## 四步流程
+## Pipeline
 
-1. **匯入** — `markitdown` 優先，品質檢查（黏字/浮水印）後必要時 fallback `pypdf`，轉成乾淨 Markdown 母本。
-2. **資訊整理** — 文章 APA7 引用 + 結構化重點摘要 + 「理論相關」參考文獻轉 APA7 並連網查證（存在性/DOI/JCR/撤稿）。
-3. **理論建構釐清** — 拆解理論來源(L1)、本文操作(L2)、理論關係(L3)，每條論斷套用防幻覺條件 **C1–C4**：
-   - **C1** 附本文逐字引文　**C2** 標 `explicit`/`interpreted`　**C3** 可 grep 回母本的定位　**C4** 受控關係詞彙、貼近本文用語
-4. **架構圖** — 理論來源 ↔ 本文架構 ↔ 研究方法 ↔ 研究發現整合成 Mermaid 圖，每條邊對應引文。
+```mermaid
+flowchart TD
+    A([Paper PDF / DOI]) --> B
 
-## 安裝
+    subgraph S1["Step 1 · Import"]
+      B["markitdown"] --> C{"Quality check:<br/>glued words? watermark noise?"}
+      C -->|clean| E["Clean Markdown master<br/>(WORK_DIR/citekey.md)"]
+      C -->|fails| D["pypdf fallback<br/>(page-marked)"] --> E
+    end
 
-```bash
-# 個人全域使用：clone 到 Claude Code 的 skills 目錄
-git clone <this-repo-url> ~/.claude/skills/literature-single-paper-decompose
+    E --> F
+    subgraph S2["Step 2 · Information"]
+      F["Article APA7 citation<br/>+ structured summary<br/>+ theory-relevant refs → APA7<br/>+ online verification (DOI/JCR/retraction)"]
+    end
 
-# 或專案內使用：放到專案的 .claude/skills/
-git clone <this-repo-url> <your-project>/.claude/skills/literature-single-paper-decompose
+    F --> G
+    subgraph S3["Step 3 · Theory construction"]
+      G["L1 sources · L2 operations · L3 relations"]
+      G --> H{"C1–C4 grounding:<br/>verbatim quote · evidence_type<br/>grep-able locator · controlled verbs"}
+    end
+
+    H --> I
+    subgraph S4["Step 4 · Architecture diagram"]
+      I["Mermaid graph:<br/>sources ↔ framework ↔ method ↔ findings<br/>every edge maps to a quote"]
+    end
+
+    I --> J([Report in WORK_DIR])
+    J -.optional.-> K[("Obsidian KB cards<br/>KB_DIR · S2/S3-ready")]
 ```
 
-**相依**：
-- `markitdown`（`pipx install 'markitdown[pdf]'`，需 Python ≥ 3.10）
-- `pypdf`（fallback 擷取）
-- `firecrawl` MCP（參考文獻連網查證；或其他可連網搜尋工具）
-- 可選：Obsidian（長期知識庫卡片化）
+## Anti-hallucination conditions (C1–C4)
 
-## 路徑配置（可攜）
+Every theory-relation claim in Step 3 (and every edge in Step 4) must satisfy:
 
-SKILL.md 用兩個可配置路徑，預設值如下，依專案/機器調整：
-
-| 變數 | 用途 | 預設 |
+| # | Condition | Guards against |
 |---|---|---|
-| `WORK_DIR` | 工作產物（母本 + 各步報告） | 當前專案下 `./ltm-work/` |
-| `KB_DIR` | 可選的長期知識庫根（Obsidian KB 卡片化收尾） | 使用者 Obsidian vault 下 `literature-kb/` |
+| **C1** | Attach the paper's **verbatim quote** (no paraphrase, no page-only) | interpretation drift |
+| **C2** | Tag `evidence_type`: `explicit` (paper states it, quoted) vs `interpreted` (analyst's grouping/label) | passing inference off as the paper's words |
+| **C3** | Locate via a **grep-able** line/quote in the clean master | citation drift, unverifiable page numbers |
+| **C4** | Use a **controlled relation vocabulary** (`draws-on / defines / applies / extends / challenges / repositions / controls-for`) and prefer the paper's own verb | upgrading a weak verb into a stronger claim |
 
-未指定時用預設，並在回報中說明落腳處。
+> Self-check: after Step 3, randomly pick 2–3 claims and actually `grep` their quotes against the master. A miss means a locator/quality problem to fix.
 
-## 內容
+## Installation
+
+```bash
+# Global (all projects)
+git clone https://github.com/ganma0517/literature-single-paper-decompose.git \
+  ~/.claude/skills/literature-single-paper-decompose
+
+# Per-project
+git clone https://github.com/ganma0517/literature-single-paper-decompose.git \
+  <your-project>/.claude/skills/literature-single-paper-decompose
+```
+
+Restart Claude Code to load the skill.
+
+**Dependencies:**
+- `markitdown` — `pipx install 'markitdown[pdf]'` (needs Python ≥ 3.10)
+- `pypdf` — fallback extractor
+- `firecrawl` MCP (or any web-search tool) — reference verification
+- Optional: Obsidian — long-term knowledge-base cards
+
+## Path configuration (portable)
+
+SKILL.md uses two configurable paths; adjust per project/machine:
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `WORK_DIR` | Work products (master + step reports) | `./ltm-work/` in the current project |
+| `KB_DIR` | Optional long-term knowledge base (Obsidian KB cards) | `literature-kb/` under the user's Obsidian vault |
+
+If unset, defaults are used and the landing location is stated in the report.
+
+## Repository layout
 
 ```
 .
-├── SKILL.md                      # skill 本體：4 步流程 + C1–C4 + Forbidden Actions
+├── SKILL.md                      # The skill: 4-step pipeline + C1–C4 + Forbidden Actions
 ├── references/
-│   └── schema-contract.md        # 三層知識網絡的共用資料契約（S1/S2/S3）
-└── examples/                     # 實跑範例（不含原始 PDF）
-    ├── Chen2026/                 # 政治學實證論文：step2/3/4 + 架構圖
-    └── Karlson2012/              # 統計方法論文（KHB method）：整合報告
+│   └── schema-contract.md        # Shared three-layer data contract (S1/S2/S3)
+└── examples/                     # Real run examples (no source PDFs)
+    ├── Chen2026/                 # Political-science empirical paper: step2/3/4 + diagram
+    └── Karlson2012/              # Statistical-method paper (KHB method): combined report
 ```
 
-## 三層架構脈絡
+## Three-layer context
 
-這是「LTM 知識網絡」三層的**第一層**，刻意停在 citation context 層以維持低幻覺：
-- **S1（本 skill）**：單篇解構 — 引用脈絡、存在性查證、理論建構釐清。
-- **S2（未來）**：讀原典驗證理論主張，建立 pass 等級 theory claim。
-- **S3（未來）**：把驗證過的理論接到研究設計（RQ/H），服務論文寫作。
+This is **layer one (S1)** of an "LTM knowledge network," deliberately stopping at the citation-context layer to stay low-hallucination:
 
-資料契約（`references/schema-contract.md`）已預留 S2/S3 欄位，確保 S1 產出向後相容。
+- **S1 (this skill)** — single-paper decomposition: citation context, existence verification, theory-construction mapping.
+- **S2 (future)** — read the *originals* to verify theory claims; build pass-grade theory-claim cards.
+- **S3 (future)** — connect verified theory to research design (RQ/H) for writing.
+
+The data contract (`references/schema-contract.md`) already reserves S2/S3 fields so S1 output stays forward-compatible.
 
 ## License
 
