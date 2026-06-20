@@ -1,0 +1,16 @@
+# 工作產物（每次跑 skill 產生，不進版控）
+ltm-work/
+WORK_DIR/
+
+# 原始論文（版權，不放）
+*.pdf
+
+# 優化/評估暫存
+desc-opt/
+*-workspace/
+trigger-eval.json
+
+# 系統
+.DS_Store
+__pycache__/
+*.pyc
