@@ -110,7 +110,8 @@ zotero_key: "..."                  # [S1] 查不到留空，不可捏造
 id: "SRC-Doshi2021"
 type: source_registry
 layer: existence
-status: verified | searched | suspect | unverifiable   # [S1] 未經查證者一律 searched/unverifiable
+status: pass | pending                 # [S1] 通用閘門狀態：查證完成→pass，待查→pending（用 §2 受控詞彙，勿填 verified）
+source_status: verified | searched | suspect | unverifiable   # [S1] 存在性細分；未經查證者一律 searched/unverifiable
 authors / year / title / publication_type / journal / volume / issue / pages / doi / isbn  # [S1]
 journal_ranking: {...}             # [S1] 期刊文獻才填
 cited_in_analyzed_paper:           # [S1] 此文獻在被分析文中的引用位置
@@ -208,20 +209,24 @@ S3 接手：pass TC + ledger → project_anchor → 連到 RQ/H → 服務寫作
 > 根目錄：`KB_DIR`（預設：使用者 Obsidian vault 下 `literature-kb/`）（決策 3）
 
 ```
-literature-kb/
-├── README.md                     # 目前 pipeline 狀態 + 風險分數
-├── project_anchor.yaml           # [S3] 一專案一份
-├── articles/      ART-*.yaml      # [S1]
-├── source_registry/ SRC-*.yaml    # [S1]
-├── citation_contexts/ CI-*.yaml   # [S1] ← S1 主產物
-├── theory_claims/  TC-*.yaml      # [S1 空殼] → [S2 填實]
-├── concepts/ mechanisms/ debates/ # [S2]
-├── synthesis/                     # [S2] 僅 pass TC
+KB_DIR/   (預設 literature-kb/)
+├── README.md                       # 目前 pipeline 狀態 + 風險分數
+├── project_anchor.md               # [S3] 一專案一份（資料放 YAML frontmatter）
+├── articles/
+│   └── <citekey>.md                # [S1] 中心文章節點＝graph 樞紐；metadata 放 frontmatter、論證骨架放 body
+├── source_registry/  SRC-*.md      # [S1]
+├── citation_contexts/ CI-*.md      # [S1] ← S1 主產物
+├── theory_claims/    TC-*.md       # [S1 空殼] → [S2 填實]
+├── concepts/ mechanisms/ debates/  # [S2]
+├── synthesis/                      # [S2] 僅 pass TC
 └── uncertainty/
-    ├── unresolved_claims.md       # pending TC + inferred CI
-    └── suspect_citations.md       # fail/invalidated/retracted
+    ├── unresolved_claims.md        # pending TC + inferred CI
+    └── suspect_citations.md        # fail/invalidated/retracted
 ```
+
+> **Obsidian 相容性（v1.1 修正）**：所有卡片一律用 **`.md`**——Obsidian 只索引 `.md`，`.yaml` 不進 graph、wiki-link 連不到。中心文章節點命名 **`<citekey>.md`**（非 `<citekey>__metadata.yaml`），使各卡的 `[[<citekey>]]` 樞紐連結有目標、在 Graph view 成為中心節點。結構化欄位（metadata / skeleton / CI / TC）放 YAML frontmatter，人讀說明與 `[[wiki-link]]` 放 body。
 
 ---
 
-*v1.0 frozen — 三個設計決策已定（見文件開頭）。欄位自此只增不改，確保 S1 既有產出向後相容。下一步：以此契約建 S1 的 SKILL.md。*
+*v1.1 — 修正兩處：(1) source_registry 拆出通用 `status: pass|pending`（受控詞彙）與細分 `source_status: verified|...`，不再讓 `verified` 佔用通用 status；(2) 所有 KB 卡片改 `.md`、中心節點命名 `<citekey>.md` 以修復 Obsidian graph 斷鏈。欄位只增不改，向後相容。*
+*v1.0 frozen — 三個設計決策已定（見文件開頭）。*
