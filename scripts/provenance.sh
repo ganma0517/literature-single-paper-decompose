@@ -13,7 +13,12 @@ PDF="${2:-}"
 # sha256:macOS 用 shasum -a 256,Linux fallback sha256sum
 sha(){ if command -v shasum >/dev/null 2>&1; then shasum -a 256 "$1" | awk '{print $1}';
        elif command -v sha256sum >/dev/null 2>&1; then sha256sum "$1" | awk '{print $1}';
-       else echo "unavailable"; fi; }
+       else echo "unavailable"; echo "⚠️ 無 shasum/sha256sum:provenance hash 不可重現" >&2; fi; }
+
+# 有給 PDF 但讀不到 → 明確 WARN(否則靜默變 n/a,誤以為沒給)
+if [ -n "$PDF" ] && [ ! -r "$PDF" ]; then
+  echo "⚠️ 指定的 PDF 讀不到,input_pdf_sha256 將為 n/a: $PDF" >&2
+fi
 
 ver(){ command -v "$1" >/dev/null 2>&1 && "$@" 2>&1 | head -1 || echo "absent"; }
 

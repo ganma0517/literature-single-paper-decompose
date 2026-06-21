@@ -21,8 +21,8 @@ C="${1:?用法: bash stance_lint.sh <claims_stance.tsv>  (每行 claim-id<TAB>re
 [ -r "$C" ] || { echo "讀不到 claims 檔: $C" >&2; exit 1; }
 
 STRONG_DEP='draws-on|defines|applies|extends'
-# 否定/反對訊號(英 + 中)
-NEG='(\bnot\b|n.t\b|\bnever\b|\bno longer\b|\bhowever\b|\balthough\b|\bthough\b|\bwhereas\b|rather than|instead of|contrary to|\bcontra\b|reject|critici[sz]|critique|\boppos|\bdeny\b|\bdenies\b|fails to|\bcannot\b|does not|do not|did not|並非|不是|並不|反對|批判|質疑|駁斥|卻|然而|儘管)'
+# 否定/反對訊號(英 + 中)。n['’]t 只收縮寫(don't/can't),不用 n.t 以免誤匹配 nat/n-t 等。
+NEG="(\\bnot\\b|n['’]t\\b|\\bnever\\b|\\bno longer\\b|\\bhowever\\b|\\balthough\\b|\\bthough\\b|\\bwhereas\\b|rather than|instead of|contrary to|\\bcontra\\b|reject|critici[sz]|critique|\\boppos|\\bdeny\\b|\\bdenies\\b|fails to|\\bcannot\\b|does not|do not|did not|並非|不是|並不|反對|批判|質疑|駁斥|卻|然而|儘管)"
 # 讓步/推測 hedge
 HEDGE='(\bmay\b|\bmight\b|\bcould\b|\bsuggest|\bappears\b|\bseems\b|\btend|possibly|perhaps|arguably|可能|或許|傾向|似乎|未必)'
 # 轉述/歸屬訊號
@@ -33,10 +33,19 @@ printf '%-30s %-12s %s\n' "CLAIM-ID" "RELATION" "STANCE/語氣 偵測"
 printf '%s\n' "--------------------------------------------------------------------------------"
 
 while IFS=$'\t' read -r id rel quote || [ -n "${id:-}" ]; do
+  id="${id%$'\r'}"
   [ -z "${id:-}" ] && continue
   case "$id" in \#*) continue;; esac
   total=$((total+1))
+  rel="${rel%$'\r'}"
   q="${quote%$'\r'}"
+
+  # malformed:缺 relation 或缺引文 → 不可靜默 ✅,標 ⚠️ 須補
+  if [ -z "$rel" ] || [ -z "$q" ]; then
+    warn=$((warn+1))
+    printf '%-30s %-12s %s\n' "$id" "${rel:-?}" "⚠️malformed:缺 relation 或引文,無法檢查"
+    continue
+  fi
   flags=""
 
   has_neg=$(printf '%s' "$q"  | grep -iqE "$NEG"  && echo 1 || echo 0)
@@ -50,10 +59,10 @@ while IFS=$'\t' read -r id rel quote || [ -n "${id:-}" ]; do
   else
     [ "$has_hedge" = 1 ] && flags="$flags ⚠️hedge(保留語氣)"
     [ "$has_attr" = 1 ]  && flags="$flags ⚠️轉述(確認他人觀點非本文立場)"
+    [ -n "$flags" ] && warn=$((warn+1))   # 此列為 warning 才累加(不再依賴全域 mis)
   fi
 
   if [ -n "$flags" ]; then
-    [ "$mis" -gt 0 ] || warn=$((warn+1))
     printf '%-30s %-12s %s\n' "$id" "$rel" "$flags"
   else
     printf '%-30s %-12s %s\n' "$id" "$rel" "✅"

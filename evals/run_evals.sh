@@ -26,6 +26,7 @@ run_case(){
 echo "===== verify_claims (P0:全量引文 grep + strict) ====="
 run_case "乾淨引文集 → PASS"           0 bash "$SK/verify_claims.sh" "$FX/clean_master.md" "$FX/claims_clean.tsv"
 run_case "含捏造引文 → STRICT FAIL"    2 bash "$SK/verify_claims.sh" "$FX/clean_master.md" "$FX/claims_tampered.tsv"
+run_case "空引文/缺tab → 不可假 PASS"  2 bash "$SK/verify_claims.sh" "$FX/clean_master.md" "$FX/claims_malformed.tsv"
 
 echo "===== master_quality (P1-1:母本品質量化門檻) ====="
 run_case "乾淨母本 → PASS"             0 bash "$SK/master_quality.sh" "$FX/clean_master.md"

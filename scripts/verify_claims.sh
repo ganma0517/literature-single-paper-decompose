@@ -29,10 +29,18 @@ printf '%s\n' "-----------------------------------------------------------------
 
 while IFS=$'\t' read -r id quote || [ -n "${id:-}" ]; do
   # 跳過空行與註解行(# 開頭)
+  id="${id%$'\r'}"
   [ -z "${id:-}" ] && continue
   case "$id" in \#*) continue;; esac
   total=$((total+1))
   q="${quote%$'\r'}"   # 去尾端 CR(跨平台)
+
+  # 0) malformed:無 tab 或空引文 → 視為 MISS,不可放行(否則 grep -F "" 會誤命中第一行→假 PASS)
+  if [ -z "$q" ]; then
+    miss=$((miss+1))
+    printf '%-28s %-8s %s\n' "$id" "🔴MISS" "malformed:缺引文(無 tab 或空白)→ 不得放行"
+    continue
+  fi
 
   # 1) 逐字精確命中(取第一個命中行號)
   ln="$(grep -F -n -- "$q" "$M" 2>/dev/null | head -1 | cut -d: -f1)"

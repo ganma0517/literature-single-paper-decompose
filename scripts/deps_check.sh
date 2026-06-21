@@ -26,8 +26,13 @@ chk 硬 awk awk "master_quality 指標計算失效"
 
 echo "-- 軟依賴(缺則該功能降級,非全失效) --"
 chk 軟 markitdown markitdown "主要 PDF→MD 擷取;缺則改用 pypdf fallback"
-chk 軟 shasum shasum "provenance hash(macOS);Linux 改用 sha256sum"
 chk 軟 git git "provenance 記不到 skill_commit"
+# sha:shasum(macOS) 或 sha256sum(Linux) 任一即可,與 provenance.sh 的 fallback 一致
+if command -v shasum >/dev/null 2>&1 || command -v sha256sum >/dev/null 2>&1; then
+  printf '  ✅ %-12s %-7s %s\n' "sha256" "[軟]" "已安裝(shasum 或 sha256sum)"
+else
+  printf '  ⚠️ %-12s %-7s 缺:%s\n' "sha256" "[軟]" "provenance hash 不可用(裝 shasum 或 sha256sum)"
+fi
 
 echo ""
 echo "-- 註:以下為 MCP 工具,非 CLI,無法用 command -v 檢查,須在 Claude 端確認連線 --"
