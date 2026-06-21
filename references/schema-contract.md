@@ -133,6 +133,7 @@ analyzed_paper: "Chen2026"         # [S1]
 cited_source: "Doshi2021"          # [S1]
 ci_layer: foundation               # [S1]
 relation: draws-on                 # [S1][C4] 受控 relation_type；優先採本文動詞
+citation_stance: author-endorsed   # [S1][P1-2] author-endorsed | attributed-other | opposed | background；與 relation 正交，標本文對該文獻的立場，禁把轉述/反對標成採納
 allowed_statement: "Chen2026 uses Doshi2021 as foundation for the great-changes framework."  # [S1] 只可寫「如何使用」
 # ↓↓↓ C1–C3：定位與引文（防詮釋幻覺，皆 [S1] 必填） ↓↓↓
 verbatim_quote: "According to Doshi, this sense of ... has driven Chinese leadership to reshape global governance structures"  # [C1] 被分析文逐字原文

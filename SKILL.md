@@ -98,6 +98,15 @@ PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐
 - **C4 受控關係詞彙＋貼近本文用語**：關係只能用 `draws-on / defines / applies / extends / challenges / repositions / controls-for`，且優先採本文自己的動詞——本文寫 "control for" 就標 `controls-for`，**不准**升級成語意更強的詞（如「統計控制」寫成「理論調和」）。
 - **C5 引文—論斷適配性（防「可追溯 ≠ 可靠」）**：C1 引文必須**實際支撐**該論斷的關係，不只是「字串存在於母本」。最隱蔽的殘留幻覺是：引文確實 grep 得到，但它**支持的是別的東西**（相鄰句、背景鋪陳、他人觀點、被作者反對的立場），與論斷錯位。每條論斷須用一句話說明「此引文如何支撐此 relation」；若引文只證明「提到」卻被寫成「依賴/延伸」，即為**適配失敗**，須降級或改寫。涉及否定/讓步語氣（however / although / not / may / suggests）時，須保留該語氣，不得抹平成肯定主張。
 
+**citation_stance（立場標記，P1-2，與 relation 正交）**：每條 CI 另標「本文對被引文獻抱持的立場」，避免把「引用」一律讀成「依賴其理論」：
+- `author-endorsed` 本文採納／依賴（典型搭 draws-on/defines/applies/extends）
+- `attributed-other` 本文僅**轉述他人**觀點，未必認同（搭 argues that / according to / 認為…）
+- `opposed` 本文**反對／批判對象**（典型搭 challenges/repositions）
+- `background` 背景鋪陳，本文無明確立場（搭 context）
+
+> 鐵則：**不得把 `attributed-other`／`opposed` 誤標成 `author-endorsed`**——「把作者轉述或反對的觀點當成作者自己的理論立場」是最常見的高階幻覺。
+> **啟發式檢查**：`bash scripts/stance_lint.sh <claims_stance.tsv>`（每行 `claim-id<TAB>relation<TAB>逐字引文`）會抓「強依賴關係詞 + 否定/反對引文」的疑似錯配（🔴）、hedge 語氣（⚠️保留）、轉述訊號（⚠️確認他人觀點）。屬語意啟發式、非定論，旗標處須人工逐條確認 stance 與 relation 後定案。
+
 > **自我檢查（全量，非抽樣）**：完成後對**每一條** C1 引文逐條 `grep` 回母本——用 `bash scripts/verify_claims.sh <母本.md> <claims.tsv>`（claims.tsv 每行 `claim-id<TAB>逐字引文`）。腳本分三態：✅逐字命中 / ⚠️去空白才中（母本吞空格，回溯失效須修母本）/ 🔴查無（疑似捏造或定位幻覺）。
 > **Strict / refuse 門檻**：凡 🔴MISS 的論斷**一律不得寫入最終結論**（腳本 exit 2）；⚠️吞空格須先修母本再驗（exit 3）；全 ✅ 才放行（exit 0）。C5 適配性無法純機械驗證，須在全量 grep 通過後，逐條人工確認「引文真的支撐論斷」。
 
@@ -146,3 +155,4 @@ PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐
 10. 把第5步外部模型的意見當權威直接翻案——cross-AI 只用來標分歧，裁決必須回母本逐字引文／重查，不得盲信外部模型。
 11. 把 `verify_claims.sh` 標 🔴MISS（逐字＋去空白皆查無）的論斷寫進最終結論——strict 門檻下必須排除或降級標紅（違反 C3/P0-2）。
 12. 引文 grep 得到就當論斷成立，卻不確認引文**實際支撐**該 relation——引文支持的是相鄰句/背景/他人觀點/被反對立場時即為適配失敗，不得照寫（違反 C5）；亦不得把帶 however/not/may 的讓步句抹平成肯定主張。
+13. 把本文 `attributed-other`（轉述他人）或 `opposed`（反對對象）的引用，標成 `author-endorsed`（本文採納）——須誠實標 citation_stance，不得把「本文提到/反對 X」升級成「本文依賴 X 的理論」（違反 P1-2）。

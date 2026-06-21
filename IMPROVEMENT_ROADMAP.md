@@ -42,11 +42,11 @@
 - **Claude 驗證**：whitehead/vandamme/fpos 三良好母本 PASS(exit0)、dirty fixture FAIL(exit2)；修掉一個 severity 排序 bug（WARN 退出碼 3 數值大於 FAIL 2，原會蓋掉 FAIL）。
 - **校準基準**：良好母本長黏串率/逗號黏字率恆 0；髒 fixture 為 3.91 / 7.81。
 
-### P1-2 citation role 分類 + 否定/讓步語氣處理
+### P1-2 citation 立場分類 + 否定/讓步語氣處理　✅ 已實作 2026-06-21
 - **問題**：把「有引用」過度解讀成「依賴該理論」；把背景鋪陳當理論基礎；漏掉 however/although/not/may 等 hedge → 理論誤讀高發區。
-- **改法**：受控關係詞之外加 `role`（作者自身主張/他人觀點/背景/批判對象/方法來源/資料來源/例子）；新增規則：論斷涉及否定或讓步語氣時須保留該語氣，不得抹平。
-- **落點**：`SKILL.md` C2/C4 擴充 + Forbidden Actions 增列。
-- **驗收**：對一段「作者轉述他人觀點」的引文，產物正確標 role=他人觀點，不誤判為作者立場。
+- **改法**：與 relation 正交新增 `citation_stance`（author-endorsed / attributed-other / opposed / background）；保留否定/讓步語氣（已併入 C5）。
+- **落地**：新增 `scripts/stance_lint.sh`（強依賴關係詞+否定引文→🔴疑似錯配、hedge→⚠️、轉述訊號→⚠️；exit 0/3）；`SKILL.md` 第 3 步加 citation_stance 標記規則 + 鐵則 + lint 指令；Forbidden Actions 增列第 13 條；`schema-contract.md` citation_context 加 `citation_stance` 欄位。
+- **Claude 驗證**：對抗案例(錯配🔴/hedge⚠️/轉述⚠️/oppose一致✅/clean✅,exit3)正確；真實 Vandamme+Chin 6 條全 ✅ **零誤報**(exit0)，含 Pitkin「act completely independently」未誤觸否定偵測。
 
 ### P1-3 架構圖防「假清晰」
 - **問題**：把辯證/條件式論述硬壓成節點與邊，看似清楚實則過度結構化。
