@@ -48,11 +48,11 @@
 - **落地**：新增 `scripts/stance_lint.sh`（強依賴關係詞+否定引文→🔴疑似錯配、hedge→⚠️、轉述訊號→⚠️；exit 0/3）；`SKILL.md` 第 3 步加 citation_stance 標記規則 + 鐵則 + lint 指令；Forbidden Actions 增列第 13 條；`schema-contract.md` citation_context 加 `citation_stance` 欄位。
 - **Claude 驗證**：對抗案例(錯配🔴/hedge⚠️/轉述⚠️/oppose一致✅/clean✅,exit3)正確；真實 Vandamme+Chin 6 條全 ✅ **零誤報**(exit0)，含 Pitkin「act completely independently」未誤觸否定偵測。
 
-### P1-3 架構圖防「假清晰」
+### P1-3 架構圖防「假清晰」　✅ 已實作 2026-06-21
 - **問題**：把辯證/條件式論述硬壓成節點與邊，看似清楚實則過度結構化。
-- **改法**：允許「條件邊 / 存疑邊」標記；對無法明確定性的關係，標 `tentative` 而非強行給受控動詞。
-- **落點**：`SKILL.md` 第 4 步。
-- **驗收**：辯證型論文的圖中出現至少一條 tentative/條件邊，而非全部硬定性。
+- **改法**：邊—證據表加「定性」欄（confirmed/tentative/conditional）；tentative/conditional 用 Mermaid 虛線 `-.->`，conditional 須把條件寫進 label 與引文。
+- **落地**：新增 `scripts/graph_lint.sh`（定性↔箭頭一致性 + confirmed 卻帶條件/推測語氣的假清晰偵測 + conditional 條件未落引文；exit 0/3/2）；`SKILL.md` 第 4 步加定性欄與虛線慣例 + lint 指令；Forbidden Actions 增列第 14 條。
+- **Claude 驗證**：對抗案例(箭頭不一致🔴/假清晰🔴/條件式✅/條件缺引文⚠️,exit2)正確；全乾淨案例 PASS(exit0)。
 
 ---
 

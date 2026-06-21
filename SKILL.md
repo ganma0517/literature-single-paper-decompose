@@ -112,8 +112,12 @@ PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐
 
 ## 第 4 步 — 架構圖
 
-把「**理論來源(L1) ↔ 本文理論架構(L2) ↔ 研究方法 ↔ 研究發現**」整合成 Mermaid `graph TD`（分 subgraph 四區），並附 **邊—證據對照表**（每條理論邊 ↔ relation 詞彙 ↔ 逐字引文 ↔ 母本定位 ↔ evidence_type）。
+把「**理論來源(L1) ↔ 本文理論架構(L2) ↔ 研究方法 ↔ 研究發現**」整合成 Mermaid `graph TD`（分 subgraph 四區），並附 **邊—證據對照表**（每條理論邊 ↔ relation 詞彙 ↔ **定性** ↔ 逐字引文 ↔ 母本定位 ↔ evidence_type）。
 - 圖中**每條理論關係邊**都要能回溯到第 3 步的引文；研究發現節點來自摘要的本文結果。圖**不引入**未驗證的新主張。
+- **防假清晰（P1-3）**：辯證/條件/存疑的關係**不得**硬畫成乾淨的無條件強邊。邊—證據表加「定性」欄：
+  - `confirmed`（本文明確、無條件）→ Mermaid 實線 `-->`；
+  - `tentative`（本文語帶保留、推測，如 may/arguably/或許）或 `conditional`（僅在某條件下成立）→ Mermaid **虛線 `-.->`**；conditional 邊須把**條件**寫進 label 與引文，不可抹成無條件。
+  - **一致性檢查**：`bash scripts/graph_lint.sh <edges.tsv>`（每行 `edge-id<TAB>arrow<TAB>定性<TAB>逐字引文`）抓「定性↔箭頭不一致」與「標 confirmed 卻帶條件/推測語氣」的假清晰（🔴），及 conditional 條件未落在引文（⚠️）。
 - 用 `validate_and_render_mermaid_diagram` 驗證語法（label 含 `&` 須在引號內）。
 - 標籤誠實：這是「本文理論架構圖」（基於 citation context），**不是**「已驗證的原典理論關係圖」。
 
@@ -156,3 +160,4 @@ PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐
 11. 把 `verify_claims.sh` 標 🔴MISS（逐字＋去空白皆查無）的論斷寫進最終結論——strict 門檻下必須排除或降級標紅（違反 C3/P0-2）。
 12. 引文 grep 得到就當論斷成立，卻不確認引文**實際支撐**該 relation——引文支持的是相鄰句/背景/他人觀點/被反對立場時即為適配失敗，不得照寫（違反 C5）；亦不得把帶 however/not/may 的讓步句抹平成肯定主張。
 13. 把本文 `attributed-other`（轉述他人）或 `opposed`（反對對象）的引用，標成 `author-endorsed`（本文採納）——須誠實標 citation_stance，不得把「本文提到/反對 X」升級成「本文依賴 X 的理論」（違反 P1-2）。
+14. 把辯證/條件/存疑的理論關係硬畫成乾淨的無條件強邊（製造「假清晰」）——須標 `tentative`/`conditional`（虛線 `-.->`），conditional 須把條件寫進 label 與引文，不得抹成無條件 confirmed（違反 P1-3）。
