@@ -61,9 +61,10 @@ description: |
 PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐字引文（C1/C3）的 grep 回溯來源。
 
 1. 預設 **markitdown**（`markitdown <pdf> -o <out>`）：保留標題/結構，多數 PDF 表現好。
-2. **品質檢查（必做）**：抽幾個已知片語，檢查有無①浮水印雜訊（重複字母）②**系統性吞空格**（如 `Logit,probit,rescaling` 黏成一團）。空格遺失明顯即判定失效。
-   - **可攜指令**：直接跑 `bash scripts/biblio_healthcheck.sh <母本.md>`，一次涵蓋本步①②與第 2 步全文書目體檢。**重複字母偵測務必用該 script（走 perl backref）——不要臨場下 `grep '\1'`，本機 grep 可能是 ugrep，`\1` 不支援會靜默失效。** script 已內建排除 URL/DOI/`www` 的 guard，避免把 hex hash 誤報成浮水印。
-3. **失效則 fallback `pypdf`**（`python3 + pypdf`，逐頁加 `===== PDF page N =====`）。對部分 SAGE/舊版式 PDF 空格保留更好，頁碼可作定位。
+2. **品質量化門檻（必做，P1-1）**：不靠目測，跑 `bash scripts/master_quality.sh <母本.md>` 取得可測指標——長黏串率、逗號黏字率、URL 斷字、空白密度（CJK 母本自動略過密度項），對照經驗校準門檻給 **PASS(exit 0) / WARN(3) / FAIL(2)**。
+   - **判讀**：`FAIL` → 母本系統性吞空格，grep 回溯不可信，**強制走第 3 點 fallback 換工具重抽**，不可逕用；`WARN` → 對標示處逐一覆核（抽該段片語實測 grep）後才續做；`PASS` → 放行。
+   - **再跑書目體檢**：`bash scripts/biblio_healthcheck.sh <母本.md>`，涵蓋浮水印/AI 誤貼連結/DOI typo 等（與第 2 步全文書目體檢同一支）。**重複字母偵測務必用該 script（走 perl backref）——不要臨場下 `grep '\1'`，本機 grep 可能是 ugrep，`\1` 不支援會靜默失效。**
+3. **FAIL 即 fallback `pypdf`**（`python3 + pypdf`，逐頁加 `===== PDF page N =====`）。對部分 SAGE/舊版式 PDF 空格保留更好，頁碼可作定位。換抽後**重跑 `master_quality.sh` 確認轉 PASS** 再續；兩工具都 FAIL 則須人工修復或停，不產出不可信母本（呼應 strict 失敗拒絕策略）。
 4. **公式限制**：公式重的論文兩工具都無法可靠擷取符號 → C1 逐字引文**只適用散文句**，公式類主張改概念描述並標「公式擷取受限」，不假裝有逐字依據。
 
 > 為何重要：母本吞了空格，逐字引文就 grep 不到、防幻覺機制失效——匯入品質是整條防線的地基。

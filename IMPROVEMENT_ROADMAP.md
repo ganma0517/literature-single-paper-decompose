@@ -35,11 +35,12 @@
 
 ## P1 — 重要（穩健性地基）
 
-### P1-1 母本品質量化門檻
+### P1-1 母本品質量化門檻　✅ 已實作 2026-06-21
 - **問題**：母本吞空格 → grep 失效卻可能假陰性過關；目前只「抽樣目檢」。
-- **改法**：把目檢換成可測指標（頁碼覆蓋率、吞空格率、URL 斷字率、引用區/正文分離），低於門檻**自動 fallback 或停**。
-- **落點**：`scripts/biblio_healthcheck.sh` 擴充；`SKILL.md` 第 1 步判準量化。
-- **驗收**：對 `evals/dirty_master_fixture.md` 跑出量化分數並正確觸發 fallback。
+- **改法**：把目檢換成可測指標（長黏串率、逗號黏字率、URL 斷字、空白密度），低於門檻**自動 fallback 或停**。
+- **落地**：新增 `scripts/master_quality.sh`（經驗校準門檻 + CJK 母本守門 + 嚴重度 PASS/WARN/FAIL→exit 0/3/2）；`SKILL.md` 第 1 步把「抽樣目檢」改為量化門檻，FAIL 強制 fallback、換抽後須重驗轉 PASS。
+- **Claude 驗證**：whitehead/vandamme/fpos 三良好母本 PASS(exit0)、dirty fixture FAIL(exit2)；修掉一個 severity 排序 bug（WARN 退出碼 3 數值大於 FAIL 2，原會蓋掉 FAIL）。
+- **校準基準**：良好母本長黏串率/逗號黏字率恆 0；髒 fixture 為 3.91 / 7.81。
 
 ### P1-2 citation role 分類 + 否定/讓步語氣處理
 - **問題**：把「有引用」過度解讀成「依賴該理論」；把背景鋪陳當理論基礎；漏掉 however/although/not/may 等 hedge → 理論誤讀高發區。
