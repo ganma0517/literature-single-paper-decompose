@@ -145,6 +145,25 @@ PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐
 
 > **失敗拒絕策略（strict）**：若 verify_claims 出現 🔴MISS、或母本品質未達門檻、或核心文獻查無，**不得**照常產出「看似完整」的報告——須降級標紅、明確指出哪幾條不可信並排除於最終結論，或在無法修復時停止，而非掩蓋。
 
+## 工具與錯誤碼契約（P2，套件化）
+
+本 skill 的機械防線由 `scripts/` 下的可攜 bash guard 構成，**退出碼一致語意**：`0=PASS`、`3=WARN(可用但須覆核)`、`2=FAIL(該項不可信，strict 須擋)`。
+
+| 階段 | 工具 | 用途 | 0 | 3 | 2 |
+|---|---|---|---|---|---|
+| 動工前 | `deps_check.sh` | 硬/軟依賴與 MCP 盤點 | 硬依賴齊 | — | 硬依賴缺 |
+| 第1步 | `master_quality.sh <母本>` | 母本品質量化門檻 | 達標 | 局部瑕疵 | 系統性吞空格 |
+| 第1/2步 | `biblio_healthcheck.sh <母本>` | 浮水印/AI連結/DOI typo 全掃 | — | — | — |
+| 第3步 | `verify_claims.sh <母本> <claims.tsv>` | 全量引文 grep + strict | 全命中 | 吞空格 | 有 🔴MISS |
+| 第3步 | `stance_lint.sh <stance.tsv>` | 立場/語氣啟發式 | 無旗標 | 須覆核 | — |
+| 第4步 | `graph_lint.sh <edges.tsv>` | 架構圖防假清晰 | 一致 | 條件待覈 | 不一致/假清晰 |
+| 收尾 | `provenance.sh <母本> [pdf]` | 可重現性 frontmatter(輸入 hash+版本) | — | — | — |
+| 回歸 | `evals/run_evals.sh` | guard 自我回歸測試(該擋有擋/該放有放) | 全綠 | — | — |
+
+- **strict 總則**：任一 guard 回 `2`（FAIL）時，對應論斷/邊/母本**不得**進最終結論；先修復重驗或如實降級標紅，不得掩蓋。
+- **產物可重現**：digest/KB 卡片 frontmatter 應內嵌 `provenance.sh` 輸出（輸入 PDF/母本 sha256 + skill_commit + schema 版本），供同輸入重跑比對。
+- **改 guard 後**先跑 `bash evals/run_evals.sh` 確認無回歸再用。
+
 ## Forbidden Actions（負面表列）
 
 1. 把論斷寫成「某文獻主張 X」——只能寫「本文用某文獻作為 [角色]／本文如何與之對話」。

@@ -56,24 +56,26 @@
 
 ---
 
-## P2 — 套件成熟度（對外發佈才需）
+## P2 — 套件成熟度　✅ 已實作 2026-06-21
 
-### P2-1 可重現性
-- 固定 parser/模型/prompt/schema 版本 + 輸入 PDF hash + 輸出 artifact hash，寫進產物 metadata。同篇重跑可比對。
-- **落點**：產物 frontmatter；`schema-contract.md`。
+> 落地：`scripts/provenance.sh` + `scripts/deps_check.sh` + `evals/run_evals.sh` + `evals/fixtures/`；
+> `SKILL.md` 新增「工具與錯誤碼契約」節（0/3/2 一致語意 + strict 總則 + 回歸指令）；
+> `README.md` 改 C1–C5、repo layout 補 scripts/evals、加 Quality gates(exit-code contract) 與版權/scope 誠實段。
 
-### P2-2 測試集 + 評估指標
-- 擴充 `evals/`：雙欄 PDF、掃描 OCR、公式密集、人文長腳註、**植入假 claim 的對抗樣本**。
-- 量測：引文命中率、錯誤 claim 率、關係動詞誤判率、explicit/interpreted 混淆率、母本抽取錯誤率、書目查核召回率。
-- **落點**：`evals/`（目前只有 1 個髒母本樣本，不足）。
+### P2-1 可重現性　✅
+- **落地**：`scripts/provenance.sh` 輸出 provenance YAML（輸入 PDF/母本 sha256 + skill_commit + schema 版本 + 工具版本），嵌入產物 frontmatter。
+- **Claude 驗證**：hash 重跑穩定；修掉 schema 版本多行 bug（`-o` 全印→`head -1`）。
 
-### P2-3 失敗拒絕策略
-- 擷取品質差／核心文獻查無／引文定位不到時 → 降級標紅或停止，不產「看似完整」的報告。
-- **落點**：`SKILL.md` 各步 + 收尾回報；對應 strict mode（見 P0-2）。
+### P2-2 測試集 + 評估指標　✅
+- **落地**：`evals/run_evals.sh` 對四支 guard × 8 個 fixtures 斷言預期退出碼並報通過率；`evals/fixtures/` 含 clean/tampered claims、stance、edges。
+- **Claude 驗證**：8/8 全綠（exit 0）；修掉 awk-in-printf 造成的小結重印 bug。
+- **缺口（誠實）**：尚未納雙欄/OCR/公式/人文長註等真實 PDF 對抗樣本（需實檔），目前 fixtures 為合成；觸發正確性量測仍受阻於 desc-opt 工具失效。
 
-### P2-4 套件邊界與契約
-- 明訂它是 Claude skill / CLI / Python package？定義安裝、輸入、輸出、錯誤碼、依賴缺失（markitdown/pypdf/firecrawl/mermaid）的 graceful 處理、隱私（連網/外部模型上傳了什麼、是否保存、如何關閉）、版權（逐字引文庫對外發佈的授權問題）。
-- **落點**：`README.md` + `SKILL.md` 風險段。
+### P2-3 失敗拒絕策略　✅
+- **落地**：strict 總則彙整進 SKILL.md「工具與錯誤碼契約」+ 收尾回報；任一 guard 回 2 即須排除/降級/停。
+
+### P2-4 套件邊界與契約　✅
+- **落地**：`scripts/deps_check.sh`（硬/軟依賴 + MCP 盤點，硬缺 exit 2）；README 明示「是 Claude skill + 輔助 script，非獨立 CLI/pip 套件」、exit-code 契約、隱私（已於中文摘要）、版權（逐字引文庫再散布提醒）。
 
 ---
 

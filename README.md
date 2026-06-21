@@ -36,7 +36,7 @@ flowchart TD
     F --> G
     subgraph S3["Step 3 · Theory construction"]
       G["L1 sources · L2 operations · L3 relations"]
-      G --> H{"C1–C4 grounding:<br/>verbatim quote · evidence_type<br/>grep-able locator · controlled verbs"}
+      G --> H{"C1–C5 grounding:<br/>verbatim quote · evidence_type<br/>grep-able locator · controlled verbs<br/>· quote–claim adequacy"}
     end
 
     H --> I
@@ -48,7 +48,7 @@ flowchart TD
     J -.optional.-> K[("Obsidian KB cards<br/>KB_DIR · S2/S3-ready")]
 ```
 
-## Anti-hallucination conditions (C1–C4)
+## Anti-hallucination conditions (C1–C5)
 
 Every theory-relation claim in Step 3 (and every edge in Step 4) must satisfy:
 
@@ -58,8 +58,11 @@ Every theory-relation claim in Step 3 (and every edge in Step 4) must satisfy:
 | **C2** | Tag `evidence_type`: `explicit` (paper states it, quoted) vs `interpreted` (analyst's grouping/label) | passing inference off as the paper's words |
 | **C3** | Locate via a **grep-able** line/quote in the clean master | citation drift, unverifiable page numbers |
 | **C4** | Use a **controlled relation vocabulary** (`draws-on / defines / applies / extends / challenges / repositions / controls-for`) and prefer the paper's own verb | upgrading a weak verb into a stronger claim |
+| **C5** | **Quote–claim adequacy**: the quote must actually *support* the relation, not merely exist in the master; preserve hedges (may / however / not) | "traceable ≠ reliable": a quote that greps back but supports something else |
 
-> Self-check: after Step 3, randomly pick 2–3 claims and actually `grep` their quotes against the master. A miss means a locator/quality problem to fix.
+Plus an orthogonal **`citation_stance`** label (`author-endorsed` / `attributed-other` / `opposed` / `background`) so "the paper cites X" is never silently read as "the paper depends on X's theory."
+
+> Self-check is **exhaustive, not sampled**: every C1 quote is grep-verified by `scripts/verify_claims.sh`, and any miss is a hard strict-mode stop (see *Quality gates* below).
 
 ## Installation
 
@@ -75,9 +78,9 @@ git clone https://github.com/ganma0517/literature-single-paper-decompose.git \
 
 Restart Claude Code to load the skill.
 
-**Dependencies:**
-- `markitdown` — `pipx install 'markitdown[pdf]'` (needs Python ≥ 3.10)
-- `pypdf` — fallback extractor
+**Dependencies** (run `bash scripts/deps_check.sh` to verify):
+- Hard: `bash` / `grep` / `perl` / `python3` / `awk` — the guard scripts
+- `markitdown` — `pipx install 'markitdown[pdf]'` (needs Python ≥ 3.10); `pypdf` fallback extractor
 - `firecrawl` MCP (or any web-search tool) — reference verification
 - Optional: Obsidian — long-term knowledge-base cards
 
@@ -96,13 +99,38 @@ If unset, defaults are used and the landing location is stated in the report.
 
 ```
 .
-├── SKILL.md                      # The skill: 4-step pipeline + C1–C4 + Forbidden Actions
+├── SKILL.md                      # The skill: 5-step pipeline + C1–C5 + 14 Forbidden Actions
 ├── references/
 │   └── schema-contract.md        # Shared three-layer data contract (S1/S2/S3)
+├── scripts/                      # Portable bash guards (exit-code contract: 0 PASS / 3 WARN / 2 FAIL)
+│   ├── biblio_healthcheck.sh     #   watermark / AI-pasted links / DOI typos
+│   ├── master_quality.sh         #   quantitative master-quality threshold (P1-1)
+│   ├── verify_claims.sh          #   full-set verbatim-quote grep + strict refuse (P0)
+│   ├── stance_lint.sh            #   citation-stance / hedge heuristics (P1-2)
+│   ├── graph_lint.sh             #   architecture-diagram false-clarity check (P1-3)
+│   ├── provenance.sh             #   reproducibility frontmatter: input hashes + versions (P2-1)
+│   └── deps_check.sh             #   hard/soft dependency preflight (P2-4)
+├── evals/                        # Self-test regression suite + fixtures
+│   ├── run_evals.sh              #   asserts each guard's verdict on known fixtures
+│   ├── dirty_master_fixture.md   #   planted-defect master
+│   └── fixtures/                 #   clean/tampered claims, stance, edges
 └── examples/                     # Real run examples (no source PDFs)
     ├── Chen2026/                 # Political-science empirical paper: step2/3/4 + diagram
     └── Karlson2012/              # Statistical-method paper (KHB method): combined report
 ```
+
+## Quality gates (exit-code contract)
+
+All guards in `scripts/` share one convention: **`0` = PASS, `3` = WARN (usable, review), `2` = FAIL (that item is untrusted; strict mode must drop it)**. Under strict mode, any `2` means the affected claim/edge/master **must not** enter the final conclusion — fix and re-verify, or honestly down-rank it; never paper over it. The toolchain itself is regression-tested:
+
+```bash
+bash scripts/deps_check.sh        # preflight: hard/soft deps + MCP tools
+bash evals/run_evals.sh           # all guards green on known fixtures (该挡有挡 / 该放有放)
+```
+
+For reproducibility, embed `scripts/provenance.sh <master> [pdf]` output (input sha256 + skill commit + schema version) into each artifact's frontmatter so the same input re-runs to a comparable result.
+
+> **Scope honesty (not yet a turnkey package):** this is a Claude skill plus helper scripts, **not** a standalone CLI/pip package. It is hallucination-*reducing*, not hallucination-*free*: verification is grep-exhaustive but stance/adequacy (C5/stance) remain model-judgment with heuristic lints, so outputs still need human review. Note also that retaining verbatim quotes builds a quote database — mind source copyright/licensing if you redistribute artifacts.
 
 ## Three-layer context
 
