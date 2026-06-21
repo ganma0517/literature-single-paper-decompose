@@ -1,33 +1,8 @@
 # literature-single-paper-decompose
 
-> **作者**：Wen-Cheng Lin　｜　**這是實驗性工具（experimental）**
+> **Author**: Wen-Cheng Lin　｜　**Experimental skill**
 >
-> ⚠️ 設計目標是「降低 AI 亂編」，但**無法保證完全不出錯**。產出只能當研究輔助，**重要的引用和理論歸屬請務必自己再確認**。要不要用由你自己決定。
-
-## 這是什麼？（白話版）
-
-這是一個 [Claude Code](https://claude.com/claude-code) 的外掛（skill），幫你**精讀一篇學術論文**，整理成一份「每句話都能查回原文」的分析，還會畫出論文的**理論架構圖**。
-
-它最在意一件事：**分清楚「論文白紙黑字寫的」和「分析者自己推論的」**。
-
-- AI 整理論文時最常見的毛病，不是憑空捏造，而是**把自己的理解講得像作者原話**。這個工具用幾條硬規矩（每個說法都要附上原文逐字引文、而且要能用搜尋找得到）來擋住這種事。
-- 它**只說「這篇論文怎麼使用某份文獻」**，不會宣稱「那份文獻原本到底主張什麼」（後者要去讀原典，是另一回事）。
-
-### 怎麼用
-
-把一篇論文的 PDF（或 DOI）給 Claude，說「**幫我精讀這篇、要能查回原文、別自己腦補**」就會啟動。產出會存到工作資料夾，包含：論文書目（APA7）、重點摘要、參考文獻查證（含是否被撤稿）、理論架構圖。
-
-### 使用前要知道
-
-1. **不保證零錯誤**：查證靠外部搜尋、自我檢查只抽樣，最後仍要你覆核重要結果。
-2. **隱私**：查證書目時會把論文片段送到外部搜尋服務（`firecrawl`／學術搜尋）；用到第 5 步交叉檢核還會送給其他 AI。**未發表的稿件請自行斟酌**，必要時略過這些連網步驟。
-3. **費用／金鑰**：相關服務可能要 API 金鑰、可能收費。金鑰是個人機密，**絕不要貼進聊天視窗**，只存在你自己的電腦。
-
-> 技術細節（pipeline、C1–C4 條件、安裝設定）見下方英文文件。
-
----
-
-## English documentation
+> ⚠️ Designed to reduce AI fabrication, but it **cannot guarantee zero errors**. Treat the output as a research aid and **verify important citations and theory attributions yourself**. Whether to use it is your call. （中文摘要見文末。）
 
 A [Claude Code](https://claude.com/claude-code) **skill** that turns a single academic paper into a **traceable, low-hallucination theory-construction analysis** plus an architecture diagram.
 
@@ -138,6 +113,16 @@ This is **layer one (S1)** of an "LTM knowledge network," deliberately stopping 
 - **S3 (future)** — connect verified theory to research design (RQ/H) for writing.
 
 The data contract (`references/schema-contract.md`) already reserves S2/S3 fields so S1 output stays forward-compatible.
+
+## 中文摘要（補充）
+
+這是一個 Claude Code 外掛，幫你**精讀一篇學術論文**，整理成「每句話都能查回原文」的分析，並畫出**理論架構圖**。核心是**分清「論文白紙黑字寫的」與「分析者自己推論的」**——AI 整理論文最常見的毛病不是憑空捏造，而是把自己的理解講得像作者原話；本工具用硬規矩（每個說法要附原文逐字引文、且能用搜尋找到）擋住這點。它**只描述「這篇論文怎麼使用某份文獻」**，不宣稱「那份文獻原本主張什麼」。
+
+**怎麼用**：把論文 PDF／DOI 給 Claude，說「幫我精讀、要能查回原文、別腦補」即可。產出含書目（APA7）、重點摘要、參考文獻查證（含撤稿）、理論架構圖。
+
+**使用前注意**：① 不保證零錯誤，重要結果請自行覆核；② 隱私——查證會把論文片段送到外部搜尋，第 5 步交叉檢核還會送給其他 AI，未發表稿件請斟酌；③ API 金鑰是個人機密，**絕不要貼進聊天視窗**，只存本機。
+
+> 完整技術細節以上方英文為準。
 
 ## License
 
