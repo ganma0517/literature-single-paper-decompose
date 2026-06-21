@@ -153,7 +153,7 @@ PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐
 |---|---|---|---|---|---|
 | 動工前 | `deps_check.sh` | 硬/軟依賴與 MCP 盤點 | 硬依賴齊 | — | 硬依賴缺 |
 | 第1步 | `master_quality.sh <母本>` | 母本品質量化門檻 | 達標 | 局部瑕疵 | 系統性吞空格 |
-| 第1/2步 | `biblio_healthcheck.sh <母本>` | 浮水印/AI連結/DOI typo 全掃 | — | — | — |
+| 第1/2步 | `biblio_healthcheck.sh <母本>` | 浮水印/AI連結/DOI typo 全掃 | 未見硬傷 | 候選硬傷 | — |
 | 第3步 | `verify_claims.sh <母本> <claims.tsv>` | 全量引文 grep + strict | 全命中 | 吞空格 | 有 🔴MISS |
 | 第3步 | `stance_lint.sh <stance.tsv>` | 立場/語氣啟發式 | 無旗標 | 須覆核 | — |
 | 第4步 | `graph_lint.sh <edges.tsv>` | 架構圖防假清晰 | 一致 | 條件待覈 | 不一致/假清晰 |

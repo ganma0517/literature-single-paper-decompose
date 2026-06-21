@@ -40,6 +40,14 @@ echo "===== graph_lint (P1-3:架構圖防假清晰) ====="
 run_case "定性/箭頭一致 → PASS"        0 bash "$SK/graph_lint.sh" "$FX/edges_clean.tsv"
 run_case "confirmed 帶推測語氣 → FAIL" 2 bash "$SK/graph_lint.sh" "$FX/edges_bad.tsv"
 
+echo "===== biblio_healthcheck (第1/2步:書目體檢) ====="
+run_case "乾淨母本 → PASS"             0 bash "$SK/biblio_healthcheck.sh" "$FX/clean_master.md"
+run_case "髒母本(AI連結/DOItypo) → WARN" 3 bash "$SK/biblio_healthcheck.sh" "$HERE/dirty_master_fixture.md"
+
+echo "===== 輔助工具 (provenance / deps_check) ====="
+run_case "provenance 乾淨母本 → 0"     0 bash "$SK/provenance.sh" "$FX/clean_master.md"
+run_case "deps_check 硬依賴齊 → 0"     0 bash "$SK/deps_check.sh"
+
 total=$((pass+fail))
 if [ "$total" -gt 0 ]; then rate=$(( pass * 100 / total )); else rate=0; fi
 printf '\n===== 指標 =====\n'
