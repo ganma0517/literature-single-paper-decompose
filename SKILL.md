@@ -59,6 +59,7 @@ PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐
 
 1. 預設 **markitdown**（`markitdown <pdf> -o <out>`）：保留標題/結構，多數 PDF 表現好。
 2. **品質檢查（必做）**：抽幾個已知片語，檢查有無①浮水印雜訊（重複字母）②**系統性吞空格**（如 `Logit,probit,rescaling` 黏成一團）。空格遺失明顯即判定失效。
+   - **可攜指令**：直接跑 `bash scripts/biblio_healthcheck.sh <母本.md>`，一次涵蓋本步①②與第 2 步全文書目體檢。**重複字母偵測務必用該 script（走 perl backref）——不要臨場下 `grep '\1'`，本機 grep 可能是 ugrep，`\1` 不支援會靜默失效。** script 已內建排除 URL/DOI/`www` 的 guard，避免把 hex hash 誤報成浮水印。
 3. **失效則 fallback `pypdf`**（`python3 + pypdf`，逐頁加 `===== PDF page N =====`）。對部分 SAGE/舊版式 PDF 空格保留更好，頁碼可作定位。
 4. **公式限制**：公式重的論文兩工具都無法可靠擷取符號 → C1 逐字引文**只適用散文句**，公式類主張改概念描述並標「公式擷取受限」，不假裝有逐字依據。
 
@@ -76,6 +77,7 @@ PDF → 乾淨 Markdown 母本（`WORK_DIR/<citekey>.md`），是後續所有逐
 4. **全文書目體檢（必做，便宜全掃，與第 3 點的深度查證分開）**：對**全部 N 筆** references 做一次低成本掃描，專抓不需連網就能發現的硬傷——不是逐筆連網查證，所以能涵蓋全文卻幾乎不增成本。為什麼獨立成一項：深度查證只挑理論子集（M 筆），而 AI 誤貼／typo 常落在子集外，靠運氣會漏；全掃讓這層附加價值**穩定觸發**。
    - **掃描樣式**：AI 輔助寫作誤貼的對話連結（`chatgpt.com/`、`claude.ai/`、`gemini.google.com/`、`bard.` 等）、DOI 拼錯（`doi.ogr`、缺 scheme、重複 `https`）、明顯失效或佔位 URL、卷期號/年份明顯矛盾。
    - **母本陷阱（重要）**：markitdown 常把 URL 拆成逐字加空格（如 `h t t p s : / / c h a t g p t . c o m`），直接 grep `chatgpt.com` 會漏判成「未發現」。掃描前先移除候選行空白再比對（例 `tr -d ' '` 後再 grep），否則會出現假陰性。
+   - **可攜指令**：`bash scripts/biblio_healthcheck.sh <母本.md>` 已實作 A–E 全部樣式（去空格破陷阱、DOI typo、placeholder、浮水印、黏字），跨 ugrep/GNU/BSD 環境一致。**唯 [F] 卷期/年份矛盾無機制保證**——grep 無法語意比對（如 1912 文獻卻標 2019），須人工掃 references 年份/卷期是否互相矛盾，不可只依賴 script。
    - 命中標 ⚠️ 並在回報點出（含 ref 編號與問題）；查無則回報「全文 N 筆書目體檢未見明顯瑕疵」。誠實區分「全掃未見」與「逐筆已驗證」——前者只排除明顯硬傷，不等於每筆都對。
 
 ## 第 3 步 — 理論建構釐清（核心，套用 C1–C4）
