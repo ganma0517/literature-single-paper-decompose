@@ -27,6 +27,7 @@ echo "===== verify_claims (P0:全量引文 grep + strict) ====="
 run_case "乾淨引文集 → PASS"           0 bash "$SK/verify_claims.sh" "$FX/clean_master.md" "$FX/claims_clean.tsv"
 run_case "含捏造引文 → STRICT FAIL"    2 bash "$SK/verify_claims.sh" "$FX/clean_master.md" "$FX/claims_tampered.tsv"
 run_case "空引文/缺tab → 不可假 PASS"  2 bash "$SK/verify_claims.sh" "$FX/clean_master.md" "$FX/claims_malformed.tsv"
+run_case "0 條有效論斷 → WARN"         3 bash "$SK/verify_claims.sh" "$FX/clean_master.md" "$FX/claims_empty.tsv"
 
 echo "===== master_quality (P1-1:母本品質量化門檻) ====="
 run_case "乾淨母本 → PASS"             0 bash "$SK/master_quality.sh" "$FX/clean_master.md"
@@ -44,7 +45,7 @@ echo "===== biblio_healthcheck (第1/2步:書目體檢) ====="
 run_case "乾淨母本 → PASS"             0 bash "$SK/biblio_healthcheck.sh" "$FX/clean_master.md"
 run_case "髒母本(AI連結/DOItypo) → WARN" 3 bash "$SK/biblio_healthcheck.sh" "$HERE/dirty_master_fixture.md"
 
-echo "===== 輔助工具 (provenance / deps_check) ====="
+echo "===== 輔助工具 (環境 smoke,非 guard 邏輯;失敗多為本機環境缺工具) ====="
 run_case "provenance 乾淨母本 → 0"     0 bash "$SK/provenance.sh" "$FX/clean_master.md"
 run_case "deps_check 硬依賴齊 → 0"     0 bash "$SK/deps_check.sh"
 

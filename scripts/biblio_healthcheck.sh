@@ -16,7 +16,7 @@ sec "[A] AI 誤貼對話連結(去空格後比對,破 markitdown 拆字陷阱)"
 if tr -d ' ' < "$F" | grep -onE "chatgpt\.com|claude\.ai|gemini\.google\.com|bard\.google\.com|poe\.com|copilot\.microsoft\.com" ; then hit=1; else echo "未見"; fi
 
 sec "[B] DOI 拼錯: doi.ogr / 重複 scheme / 裸 DOI 缺 scheme"
-grep -nE "doi\.ogr|https?://https?://|doi\.org\.|dio\.org" "$F" && hit=1
+grep -nE "doi\.ogr|https?://https?://|doi\.org\.|dio\.org" "$F" && hit=1 || echo "未見"
 echo "-- 行首裸 DOI(缺 http scheme,屬候選非必錯)--"
 grep -nE "^[[:space:]]*10\.[0-9]{4,}/" "$F" || true
 
@@ -52,4 +52,6 @@ fi
 echo "提醒:[F] 年份矛盾與深度查證(撤稿/DOI 對應)仍須另行人工/連網處理。"
 
 # 遵守 guard 退出碼契約(0/3/2):候選硬傷 → WARN(3),全掃未見 → PASS(0)。
+# 註:退出碼只看 [A][B][C](AI連結/DOItypo/placeholder)這類書目硬傷;
+# [D][E](浮水印/系統性吞空格)僅列印提示——母本品質門檻由 master_quality.sh 負責判定退出碼。
 [ "$hit" -eq 1 ] && exit 3 || exit 0

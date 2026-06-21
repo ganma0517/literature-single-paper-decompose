@@ -16,10 +16,18 @@ set -u
 F="${1:?用法: bash master_quality.sh <master.md>}"
 [ -r "$F" ] || { echo "讀不到母本: $F" >&2; exit 1; }
 
-words=$(wc -w < "$F" | tr -d ' ')
-[ "${words:-0}" -gt 0 ] || { echo "母本無內容(0 詞)" >&2; exit 2; }
+# 注:wc -m / tr [:space:] / grep 字元類別受 locale 影響;門檻在 UTF-8 locale 下校準,
+# 請在 UTF-8 環境執行(勿強制 LC_ALL=C,否則 wc -m 改算 byte 會破壞 CJK 字數與比例)。
 chars=$(wc -m < "$F" | tr -d ' ')
 nonsp=$(tr -d '[:space:]' < "$F" | wc -m | tr -d ' ')
+# 真空檔/純空白(無實體字元)→ FAIL(2)。用 nonsp 判,純空白不算有內容。
+[ "${nonsp:-0}" -gt 0 ] || { echo "母本空檔/純空白(0 實體字元)" >&2; exit 2; }
+words=$(wc -w < "$F" | tr -d ' ')
+# 有實體字元但 0 詞(如純 CJK 無空白)→ 黏字類量化指標不適用,WARN 而非誤判 FAIL,避免誤殺中文母本。
+if [ "${words:-0}" -le 0 ]; then
+  echo "⚠️ 母本詞數為 0(可能純 CJK 無空白或極短):長黏串/逗號黏字等量化指標不適用,須人工抽片語實測 grep。" >&2
+  exit 3
+fi
 latin=$(grep -oE '[A-Za-z]' "$F" | wc -l | tr -d ' ')
 
 # --- 指標 ---

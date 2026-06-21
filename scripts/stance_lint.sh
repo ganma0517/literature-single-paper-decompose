@@ -40,10 +40,10 @@ while IFS=$'\t' read -r id rel quote || [ -n "${id:-}" ]; do
   rel="${rel%$'\r'}"
   q="${quote%$'\r'}"
 
-  # malformed:缺 relation 或缺引文 → 不可靜默 ✅,標 ⚠️ 須補
-  if [ -z "$rel" ] || [ -z "$q" ]; then
+  # malformed:缺 relation 或缺引文(含純空白) → 不可靜默 ✅,標 ⚠️ 須補
+  if [ -z "$(printf '%s' "$rel" | tr -d '[:space:]')" ] || [ -z "$(printf '%s' "$q" | tr -d '[:space:]')" ]; then
     warn=$((warn+1))
-    printf '%-30s %-12s %s\n' "$id" "${rel:-?}" "⚠️malformed:缺 relation 或引文,無法檢查"
+    printf '%-30s %-12s %s\n' "$id" "${rel:-?}" "⚠️malformed:缺 relation 或引文(含純空白),無法檢查"
     continue
   fi
   flags=""
@@ -70,7 +70,7 @@ while IFS=$'\t' read -r id rel quote || [ -n "${id:-}" ]; do
 done < "$C"
 
 printf '%s\n' "--------------------------------------------------------------------------------"
-printf '小結: 共 %d 條 | 🔴疑似立場錯配 %d | ⚠️語氣/轉述須覆核(其餘旗標)\n' "$total" "$mis"
+printf '小結: 共 %d 條 | 🔴疑似立場錯配 %d | ⚠️語氣/轉述/malformed 須覆核 %d\n' "$total" "$mis" "$warn"
 if [ "$mis" -gt 0 ] || [ "$warn" -gt 0 ]; then
   echo "⚠️ 有需人工覆核的 citation_stance/語氣旗標(啟發式,非定論)。逐條確認後再定 relation 與 stance。"
   exit 3

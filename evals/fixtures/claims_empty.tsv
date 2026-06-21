@@ -1,0 +1,1 @@
+# 只有註解,無有效論斷 → verify_claims 應 WARN(total=0)

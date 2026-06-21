@@ -35,10 +35,11 @@ while IFS=$'\t' read -r id quote || [ -n "${id:-}" ]; do
   total=$((total+1))
   q="${quote%$'\r'}"   # 去尾端 CR(跨平台)
 
-  # 0) malformed:無 tab 或空引文 → 視為 MISS,不可放行(否則 grep -F "" 會誤命中第一行→假 PASS)
-  if [ -z "$q" ]; then
+  # 0) malformed:無 tab、空引文、或純空白引文 → 視為 MISS,不可放行
+  #    (否則 grep -F "" 或 grep -F "   " 會誤命中母本空白片段 → 假 PASS)
+  if [ -z "$(printf '%s' "$q" | tr -d '[:space:]')" ]; then
     miss=$((miss+1))
-    printf '%-28s %-8s %s\n' "$id" "🔴MISS" "malformed:缺引文(無 tab 或空白)→ 不得放行"
+    printf '%-28s %-8s %s\n' "$id" "🔴MISS" "malformed:缺引文/純空白(無 tab 或無實體字元)→ 不得放行"
     continue
   fi
 
@@ -67,7 +68,10 @@ done < "$C"
 printf '%s\n' "------------------------------------------------------------------------"
 printf '小結: 共 %d 條 | ✅命中 %d | ⚠️吞空格 %d | 🔴MISS %d\n' "$total" "$ok" "$sp" "$miss"
 
-if [ "$miss" -gt 0 ]; then
+if [ "$total" -eq 0 ]; then
+  echo "⚠️ claims 檔無有效論斷(0 條):無從驗證,別把它當作「已通過驗證」。"
+  exit 3
+elif [ "$miss" -gt 0 ]; then
   echo "❌ STRICT FAIL: 有 $miss 條引文查無 → 這些論斷不得寫入最終結論(P0-2)。"
   exit 2
 elif [ "$sp" -gt 0 ]; then
