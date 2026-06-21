@@ -1,5 +1,34 @@
 # literature-single-paper-decompose
 
+> **作者**：Wen-Cheng Lin　｜　**這是實驗性工具（experimental）**
+>
+> ⚠️ 設計目標是「降低 AI 亂編」，但**無法保證完全不出錯**。產出只能當研究輔助，**重要的引用和理論歸屬請務必自己再確認**。要不要用由你自己決定。
+
+## 這是什麼？（白話版）
+
+這是一個 [Claude Code](https://claude.com/claude-code) 的外掛（skill），幫你**精讀一篇學術論文**，整理成一份「每句話都能查回原文」的分析，還會畫出論文的**理論架構圖**。
+
+它最在意一件事：**分清楚「論文白紙黑字寫的」和「分析者自己推論的」**。
+
+- AI 整理論文時最常見的毛病，不是憑空捏造，而是**把自己的理解講得像作者原話**。這個工具用幾條硬規矩（每個說法都要附上原文逐字引文、而且要能用搜尋找得到）來擋住這種事。
+- 它**只說「這篇論文怎麼使用某份文獻」**，不會宣稱「那份文獻原本到底主張什麼」（後者要去讀原典，是另一回事）。
+
+### 怎麼用
+
+把一篇論文的 PDF（或 DOI）給 Claude，說「**幫我精讀這篇、要能查回原文、別自己腦補**」就會啟動。產出會存到工作資料夾，包含：論文書目（APA7）、重點摘要、參考文獻查證（含是否被撤稿）、理論架構圖。
+
+### 使用前要知道
+
+1. **不保證零錯誤**：查證靠外部搜尋、自我檢查只抽樣，最後仍要你覆核重要結果。
+2. **隱私**：查證書目時會把論文片段送到外部搜尋服務（`firecrawl`／學術搜尋）；用到第 5 步交叉檢核還會送給其他 AI。**未發表的稿件請自行斟酌**，必要時略過這些連網步驟。
+3. **費用／金鑰**：相關服務可能要 API 金鑰、可能收費。金鑰是個人機密，**絕不要貼進聊天視窗**，只存在你自己的電腦。
+
+> 技術細節（pipeline、C1–C4 條件、安裝設定）見下方英文文件。
+
+---
+
+## English documentation
+
 A [Claude Code](https://claude.com/claude-code) **skill** that turns a single academic paper into a **traceable, low-hallucination theory-construction analysis** plus an architecture diagram.
 
 Core value — **every claim can be `grep`-ed back to the source text, and "what the paper explicitly says" is kept strictly separate from "what the analyst inferred."**
