@@ -64,6 +64,14 @@ Plus an orthogonal **`citation_stance`** label (`author-endorsed` / `attributed-
 
 > Self-check is **exhaustive, not sampled**: every C1 quote is grep-verified by `scripts/verify_claims.sh`, and any miss is a hard strict-mode stop (see *Quality gates* below).
 
+## When to use / not use
+
+**Use:** deep forensic analysis of a single paper — you need to know exactly what the paper *explicitly says* (with verbatim quotes) vs. what the analyst inferred; building Obsidian KB cards for a longer writing project; verifying whether a paper's citations are real and whether the paper actually supports the claim it's being cited for.
+
+**Don't use:** batch processing many papers quickly → `academic-paper-digest` (lighter); writing a literature review → `literature-review-hardened`; designing a course reading list → `course-syllabus`; visualizing a full literature network across many papers (this is single-paper only).
+
+---
+
 ## Installation
 
 ```bash
